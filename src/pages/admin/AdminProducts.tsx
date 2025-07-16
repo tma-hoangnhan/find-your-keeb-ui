@@ -26,6 +26,7 @@ import {
   MenuItem,
   Switch,
   FormControlLabel,
+  Pagination,
 } from '@mui/material';
 import {
   Add,
@@ -61,6 +62,9 @@ const AdminProducts: React.FC = () => {
   });
   const [editImageUploading, setEditImageUploading] = useState(false);
   const [editImageError, setEditImageError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
 
   useEffect(() => {
     fetchProducts();
@@ -171,6 +175,13 @@ const AdminProducts: React.FC = () => {
     }).format(price);
   };
 
+  // Filter products by search term (case-insensitive, contains)
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.trim().toLowerCase())
+  );
+  const paginatedProducts = filteredProducts.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+  const totalPages = Math.ceil(filteredProducts.length / rowsPerPage);
+
   if (loading) {
     return (
       <Container maxWidth="lg">
@@ -197,6 +208,20 @@ const AdminProducts: React.FC = () => {
         </Button>
       </Box>
 
+      {/* Search Bar */}
+      <Box sx={{ mb: 2, maxWidth: 400 }}>
+        <TextField
+          fullWidth
+          label="Search by Name"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          variant="outlined"
+          size="small"
+          placeholder="Type product name..."
+          autoComplete="off"
+        />
+      </Box>
+
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {error}
@@ -218,7 +243,7 @@ const AdminProducts: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {products.map((product) => (
+            {paginatedProducts.map((product) => (
               <TableRow key={product.id}>
                 <TableCell>
                   <img
@@ -288,6 +313,19 @@ const AdminProducts: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+          <Pagination
+            count={totalPages}
+            page={currentPage}
+            onChange={(_, page) => setCurrentPage(page)}
+            color="primary"
+            size="large"
+          />
+        </Box>
+      )}
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>

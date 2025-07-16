@@ -36,6 +36,7 @@ export interface ProductFilterRequest {
   wirelessSupport?: boolean;
   page?: number;
   size?: number;
+  searchTerm?: string; // Added for searching by product name
 }
 
 export interface CartItem {

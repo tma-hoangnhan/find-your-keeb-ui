@@ -22,7 +22,9 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  TextField,
+  Pagination
 } from '@mui/material';
 import {
   Visibility
@@ -69,6 +71,9 @@ const AdminOrders: React.FC = () => {
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
   const [newStatus, setNewStatus] = useState<string>(ORDER_STATUSES[0]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
 
   useEffect(() => {
     fetchOrders();
@@ -142,6 +147,15 @@ const AdminOrders: React.FC = () => {
     }
   };
 
+  // Filter orders by order ID only
+  const filteredOrders = orders.filter(order => {
+    const search = searchTerm.trim();
+    if (!search) return true;
+    return order.id.toString().includes(search);
+  });
+  const paginatedOrders = filteredOrders.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+  const totalPages = Math.ceil(filteredOrders.length / rowsPerPage);
+
   if (loading) {
     return (
       <Container maxWidth="lg">
@@ -161,6 +175,20 @@ const AdminOrders: React.FC = () => {
         <Typography variant="body2" color="text.secondary">
           {orders.length} total orders
         </Typography>
+      </Box>
+
+      {/* Search Bar */}
+      <Box sx={{ mb: 2, maxWidth: 400 }}>
+        <TextField
+          fullWidth
+          label="Search by Order ID"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          variant="outlined"
+          size="small"
+          placeholder="Type order ID..."
+          autoComplete="off"
+        />
       </Box>
 
       {error && (
@@ -183,7 +211,7 @@ const AdminOrders: React.FC = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {orders.map((order) => (
+            {paginatedOrders.map((order) => (
               <TableRow key={order.id}>
                 <TableCell>
                   <Typography variant="subtitle2">#{order.id}</Typography>
@@ -234,6 +262,19 @@ const AdminOrders: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+          <Pagination
+            count={totalPages}
+            page={currentPage}
+            onChange={(_, page) => setCurrentPage(page)}
+            color="primary"
+            size="large"
+          />
+        </Box>
+      )}
 
       {/* Status Update Dialog */}
       <Dialog open={statusDialogOpen} onClose={() => setStatusDialogOpen(false)}>

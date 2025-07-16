@@ -109,8 +109,11 @@ const Products: React.FC = () => {
 
   // Apply all draft filters at once
   const applyFilters = () => {
+    // Trim searchTerm before applying filters
+    const trimmedSearchTerm = draftFilters.searchTerm ? draftFilters.searchTerm.trim() : undefined;
     setActiveFilters({
       ...draftFilters,
+      searchTerm: trimmedSearchTerm,
       page: 0, // Reset to first page when applying new filters
     });
     setCurrentPage(1);
@@ -303,6 +306,19 @@ const Products: React.FC = () => {
                 sx={{ mb: 2 }}
               />
 
+              {/* Product Name Search */}
+              <TextField
+                fullWidth
+                label="Search by Name"
+                value={draftFilters.searchTerm || ''}
+                onChange={e => handleDraftFilterChange('searchTerm', e.target.value)}
+                variant="outlined"
+                size="small"
+                sx={{ mb: 2 }}
+                placeholder="Type product name..."
+                autoComplete="off"
+              />
+
               {/* Apply and Clear Buttons */}
               <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
                 <Button
@@ -322,33 +338,6 @@ const Products: React.FC = () => {
                 </Button>
               </Box>
 
-              {/* Show active filters summary */}
-              {hasActiveFilters() && (
-                <Box sx={{ mt: 2, p: 2, bgcolor: '#232323', color: '#fff', borderRadius: 1 }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Active Filters:
-                  </Typography>
-                  {activeFilters.brand && (
-                    <Chip label={`Brand: ${activeFilters.brand}`} size="small" sx={{ mr: 1, mb: 1 }} />
-                  )}
-                  {activeFilters.layout && (
-                    <Chip label={`Layout: ${activeFilters.layout.replace('_', ' ')}`} size="small" sx={{ mr: 1, mb: 1 }} />
-                  )}
-                  {(activeFilters.minPrice || activeFilters.maxPrice) && (
-                    <Chip 
-                      label={`Price: $${activeFilters.minPrice || 0} - $${activeFilters.maxPrice || 500}`} 
-                      size="small" 
-                      sx={{ mr: 1, mb: 1 }} 
-                    />
-                  )}
-                  {activeFilters.rgbSupport && (
-                    <Chip label="RGB Support" size="small" sx={{ mr: 1, mb: 1 }} />
-                  )}
-                  {activeFilters.wirelessSupport && (
-                    <Chip label="Wireless" size="small" sx={{ mr: 1, mb: 1 }} />
-                  )}
-                </Box>
-              )}
             </CardContent>
           </Card>
         </Grid>
