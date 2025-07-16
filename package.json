@@ -30,6 +30,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "dev": "react-scripts start",
     "start": "serve -s build",
     "build": "cross-env CI=false react-scripts build",
     "test": "react-scripts test",
