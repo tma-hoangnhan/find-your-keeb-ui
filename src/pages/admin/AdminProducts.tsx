@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import {
   Container,
   Typography,
@@ -59,6 +59,8 @@ const AdminProducts: React.FC = () => {
     stockQuantity: '',
     imageUrl: '',
   });
+  const [editImageUploading, setEditImageUploading] = useState(false);
+  const [editImageError, setEditImageError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -133,6 +135,32 @@ const AdminProducts: React.FC = () => {
     } catch (err) {
       setError('Failed to delete product');
       console.error('Error deleting product:', err);
+    }
+  };
+
+  const handleEditImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      setEditImageError('Image size must be less than 10MB');
+      return;
+    }
+    setEditImageUploading(true);
+    setEditImageError(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await fetch(`${BACKEND_URL}/api/products/upload-image`, {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) throw new Error('Image upload failed');
+      const imagePath = await response.text();
+      setEditForm((prev) => ({ ...prev, imageUrl: imagePath }));
+    } catch (err) {
+      setEditImageError('Failed to upload image');
+    } finally {
+      setEditImageUploading(false);
     }
   };
 
@@ -327,9 +355,40 @@ const AdminProducts: React.FC = () => {
             <TextField
               label="Image URL"
               value={editForm.imageUrl}
-              onChange={(e) => setEditForm({ ...editForm, imageUrl: e.target.value })}
               fullWidth
+              disabled
+              sx={{ gridColumn: '1 / -1' }}
             />
+            <Button
+              variant="outlined"
+              component="label"
+              sx={{ gridColumn: '1 / -1', mb: 1 }}
+              disabled={editImageUploading}
+            >
+              Upload Image
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleEditImageUpload}
+              />
+            </Button>
+            {editImageError && (
+              <Typography color="error" sx={{ gridColumn: '1 / -1' }}>{editImageError}</Typography>
+            )}
+            {editForm.imageUrl && (
+              <Box sx={{ gridColumn: '1 / -1', mt: 1 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Image Preview:
+                </Typography>
+                <img
+                  src={editForm.imageUrl.startsWith('/product-images/') ? BACKEND_URL + editForm.imageUrl : editForm.imageUrl}
+                  alt="Product preview"
+                  style={{ maxWidth: '200px', maxHeight: '200px', borderRadius: 8, border: '1px solid #ddd' }}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              </Box>
+            )}
             <TextField
               label="Description"
               value={editForm.description}
